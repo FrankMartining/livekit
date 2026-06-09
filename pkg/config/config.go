@@ -432,6 +432,7 @@ var DefaultConfig = Config{
 			{Mime: mime.MimeTypeH265.String()},
 			{Mime: mime.MimeTypeRTX.String()},
 		},
+		LiveStreamingMode: true,
 		EmptyTimeout:          5 * 60,
 		DepartureTimeout:      20,
 		CreateRoomEnabled:     true,
