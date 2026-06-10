@@ -6,14 +6,14 @@
 - package_name: `rtc`
 
 ## Summary
-The rtc package owns LiveKit room and local participant runtime behavior, including signaling, WebRTC transport coordination, media and data track publication, subscription management, migration, and room broadcasts. It connects protocol messages and participant state to SFU media forwarding, telemetry, routing, egress, and agent dispatch integrations.
+The rtc package owns LiveKit room and local participant runtime behavior, including signaling, WebRTC transport coordination, media and data track publication, subscription management, migration, room broadcasts, and participant-kind observability. It connects protocol messages and participant state to SFU media forwarding, telemetry, routing, egress, and agent dispatch integrations.
 
 ## Responsibilities
 - Create and manage rooms, local participants, participant state, permissions, metadata, and lifecycle transitions.
 - Coordinate publisher and subscriber transports, SDP negotiation, ICE handling, reconnect, fallback, and migration behavior.
 - Publish media and data tracks, resolve subscriptions, dispatch RTP/RTCP and data messages, and maintain track metadata.
 - Broadcast participant, room, speaker, data, subscription, and signaling updates to clients and room listeners.
-- Enforce runtime limits and feature gates while reporting telemetry, metrics, connection quality, and egress failures.
+- Enforce runtime limits and feature gates while reporting telemetry, byte metrics, participant-kind metadata, connection quality, and egress failures.
 
 ## Files
 - file: `clientinfo.go`
@@ -34,22 +34,22 @@ The rtc package owns LiveKit room and local participant runtime behavior, includ
 
 - file: `datadowntrack.go`
   detail: `datadowntrack.go.jsonl`
-  summary: Implements DataDownTrack, which forwards published data track packets to one subscriber through a data track transport.
+  summary: Implements DataDownTrack, which forwards published data track packets to one subscriber through a data track transport and records subscribed data byte stats.
   responsibilities:
   - Create subscriber-specific data down tracks and register them with the published data track.
   - Expose data down track identity, handle, and source track accessors.
-  - Rewrite packet handles, marshal data track packets, and send them through the transport.
-  - Remove the down track from the published data track on close.
+  - Rewrite packet handles, marshal data track packets, send them through the transport, and record sent bytes on success.
+  - Stop byte stats and remove the down track from the published data track on close.
 
 - file: `datatrack.go`
   detail: `datatrack.go.jsonl`
-  summary: Implements published data tracks for RTC participants, including subscriber data downtrack creation, downtrack fanout, lifecycle closure, and data track statistics updates.
+  summary: Implements published data tracks for RTC participants, including subscriber data downtrack creation, downtrack fanout, lifecycle closure, packet statistics, and byte telemetry updates.
   responsibilities:
   - Expose published data track identity and protobuf metadata.
-  - Create and remove subscriber-specific data downtracks.
+  - Create and remove subscriber-specific data downtracks with downstream byte stats.
   - Register and unregister data track senders for packet fanout.
   - Broadcast incoming data track packets to subscribed downtracks.
-  - Track data packet statistics and close lifecycle state.
+  - Track data packet statistics, byte telemetry, and close lifecycle state.
 
 - file: `datatrack_stats.go`
   detail: `datatrack_stats.go.jsonl`
@@ -98,10 +98,10 @@ The rtc package owns LiveKit room and local participant runtime behavior, includ
 
 - file: `mediatrack.go`
   detail: `mediatrack.go.jsonl`
-  summary: Implements local published media tracks, tying WebRTC RTP receivers to SFU receivers, dynacast subscription control, media loss handling, codec regression, telemetry, and track lifecycle operations.
+  summary: Implements local published media tracks, tying WebRTC RTP receivers to SFU receivers, dynacast subscription control, media loss handling, codec regression, participant-kind observability, telemetry, and track lifecycle operations.
   responsibilities:
   - Construct media track receivers with audio, video, dynacast, and codec regression behavior.
-  - Add WebRTC RTP receivers and bind their buffers, RTCP handling, codec state, and telemetry callbacks.
+  - Add WebRTC RTP receivers and bind their buffers, RTCP handling, codec state, telemetry callbacks, and participant-kind observability reporting.
   - Expose track metadata, CID lookup, mute, restart, close, and connection quality operations.
   - Forward dynacast subscription changes to signaling callbacks and receiver spatial-layer limits.
 
@@ -136,17 +136,17 @@ The rtc package owns LiveKit room and local participant runtime behavior, includ
 
 - file: `participant.go`
   detail: `participant.go.jsonl`
-  summary: Defines ParticipantImpl, the core local participant implementation for signalling, permissions, media publishing, subscriptions, transport management, migration, data channels, metrics, and RPC.
+  summary: Defines ParticipantImpl, the core local participant implementation for signalling, permissions, media publishing, subscriptions, transport management, migration, data channels, participant-kind observability, metrics, and RPC.
   responsibilities:
   - Create and manage local participant lifecycle, state, permissions, metadata, migration, and reconnection.
   - Coordinate publisher and subscriber transports with media tracks, data tracks, subscriptions, RTCP, and connection quality.
-  - Handle signalling messages, data packets, metrics, codec negotiation, reliable data replay, and data-channel RPC.
+  - Handle signalling messages, data packets, byte telemetry, metrics, codec negotiation, reliable data replay, and data-channel RPC.
 
 - file: `participant_data_track.go`
   detail: `participant_data_track.go.jsonl`
-  summary: Handles participant data track signaling requests and received data track packets, including publish validation, unpublish handling, subscription updates, packet dispatch, and subscribed data track handle allocation.
+  summary: Handles participant data track signaling requests and received data track packets, including publish validation, byte telemetry setup, unpublish handling, subscription updates, packet dispatch, and subscribed data track handle allocation.
   responsibilities:
-  - Validate and publish participant data tracks from signaling requests.
+  - Validate and publish participant data tracks from signaling requests with byte telemetry.
   - Unpublish participant data tracks by publication handle.
   - Forward data subscription updates to participant listeners.
   - Parse received data track packets and dispatch them to published data tracks and listeners.
@@ -190,22 +190,22 @@ The rtc package owns LiveKit room and local participant runtime behavior, includ
 
 - file: `signalanddatastats.go`
   detail: `signalanddatastats.go.jsonl`
-  summary: Tracks byte and message statistics for data and signaling paths, periodically reports telemetry, and creates synthetic signal track reporting state after room and participant resolution.
+  summary: Tracks byte and message statistics for data and signaling paths, includes participant kind metadata in observability reporting, periodically reports telemetry, and creates synthetic signal track reporting state after room and participant resolution.
   responsibilities:
   - Represent synthetic byte track types for data and signaling telemetry.
-  - Accumulate send and receive byte and message totals with atomics.
+  - Accumulate send and receive byte and message totals with atomics and participant kind metadata.
   - Periodically flush data track statistics to participant telemetry listeners.
-  - Manage deferred signal telemetry reporting for room and participant lifecycle events.
+  - Manage deferred signal telemetry reporting for room and participant lifecycle events with participant kind details.
   - Generate deterministic synthetic track IDs for participant byte tracks.
 
 - file: `subscribedtrack.go`
   detail: `subscribedtrack.go.jsonl`
-  summary: Implements subscriber-side media track state for one subscribed track, including downtrack construction, bind callbacks, subscriber settings, negotiation flags, telemetry, and DownTrack listener events.
+  summary: Implements subscriber-side media track state for one subscribed track, including downtrack construction, bind callbacks, subscriber settings, negotiation flags, participant-kind observability, telemetry, and DownTrack listener events.
   responsibilities:
   - Create SFU downtracks for subscribed media tracks.
   - Track bind, close, negotiation, RTP sender, and subscriber setting state.
   - Apply subscriber mute, quality, spatial layer, temporal layer, and adaptive stream settings.
-  - Report downstream stats and stream-start telemetry.
+  - Report downstream stats, subscriber kind metadata, and stream-start telemetry.
   - Forward downtrack listener events to participant and media track callbacks.
 
 - file: `subscriptionmanager.go`

@@ -31,9 +31,10 @@ Coordinates LiveKit agent workers, job dispatch, worker registration, job lifecy
   - Store agent telemetry and load configuration.
 - file: `worker.go`
   detail: `worker.go.jsonl`
-  summary: Owns worker protocol state, signal dispatch, registration, ping handling, job assignment, termination, status updates, and worker lifecycle management.
+  summary: Owns worker protocol state, signal dispatch, registration, worker-scoped logging metadata, ping handling, job assignment, termination, status updates, and worker lifecycle management.
   responsibilities:
   - Define worker protocol constants, errors, interfaces, and registrations.
+  - Build worker-scoped loggers with worker, agent, deployment, version, and job-type metadata.
   - Dispatch incoming worker messages to signal handlers.
   - Register workers and respond to worker pings.
   - Assign, terminate, update, simulate, and track jobs on a worker.

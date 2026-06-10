@@ -30,7 +30,7 @@ The telemetry package coordinates LiveKit telemetry collection, analytics delive
   summary: Implements telemetryService event methods and analytics event construction helpers.
   responsibilities:
   - Queue webhook notifications and analytics events for room and participant lifecycle changes.
-  - Record Prometheus counters around participant and track lifecycle events.
+  - Record Prometheus counters around participant connection, active state, and track lifecycle events.
   - Emit analytics events for track, ingress, egress, report, API, and webhook activity.
   - Build minimal room, participant, track, ingress, and egress analytics event protos.
 

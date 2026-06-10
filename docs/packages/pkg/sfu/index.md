@@ -18,7 +18,7 @@ Core SFU media forwarding package that connects upstream receivers to subscriber
 ## Files
 - file: `downtrack.go`
   detail: `downtrack.go.jsonl`
-  summary: Implements subscriber-side DownTrack forwarding for RTP media, RTCP feedback, retransmission, padding, codec negotiation, stream allocation, and connection quality reporting.
+  summary: Implements subscriber-side DownTrack forwarding for RTP media, primary and RTX RTCP reader feedback, retransmission, padding, codec negotiation, stream allocation, and connection quality reporting.
   responsibilities:
   - Define TrackSender and DownTrack listener contracts.
   - Create, bind, mute, close, and migrate subscriber downtracks.

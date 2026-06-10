@@ -28,9 +28,9 @@ This package owns RTP and RTCP buffering for SFU media streams. It manages packe
 
 - file: `buffer_base.go`
   detail: `buffer_base.go.jsonl`
-  summary: Owns the shared RTP buffer core used by publisher and subscriber-facing buffers, including RTP stats, NACK state, packet bucket storage, extended packet creation, codec and layer metadata, callbacks, stream restart handling, and key-frame seeding.
+  summary: Owns the shared RTP buffer core used by publisher and subscriber-facing buffers, including RTP stats, NACK queue abstraction, packet bucket storage, extended packet creation, codec and layer metadata, callbacks, stream restart handling, and key-frame seeding.
   responsibilities:
-  - Configure codec, RTP parameters, packet bucket, stats, NACK, and header extension state.
+  - Configure codec, RTP parameters, packet bucket, stats, NACK queue, and header extension state.
   - Accept RTP packets and update stats, NACK, sequence adjustments, bucket storage, and extended packet queues.
   - Parse video metadata including dependency descriptors, video layers, key frames, video sizes, and frame rates.
   - Expose RTP stats, delta stats, sender report data, NACK pairs, audio levels, and packet retrieval.

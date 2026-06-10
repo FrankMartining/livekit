@@ -6,11 +6,11 @@
 - package_name: `prometheus`
 
 ## Summary
-Defines Prometheus metrics and recording helpers for LiveKit node, packet, room, quality, data packet, debug, and platform node telemetry. The package initializes metric collectors with node labels and exposes functions that update counters, gauges, histograms, and protobuf node statistics.
+Defines Prometheus metrics and recording helpers for LiveKit node, packet, room, quality, data packet, debug, and platform node telemetry. The package initializes metric collectors with node labels and exposes functions that update counters, gauges, histograms, Twirp request latency observations, and protobuf node statistics.
 
 ## Responsibilities
 - Initialize Prometheus collectors for node, packet, room, quality, data packet, and debug telemetry.
-- Record SFU packet, RTCP, participant, room, track, session, and forwarding metrics.
+- Record SFU packet, RTCP, participant, room, track, session, forwarding, and Twirp request metrics.
 - Build node statistics and rate snapshots from counters and platform resource measurements.
 - Provide platform-specific helpers for CPU, load average, and traffic control packet statistics.
 
@@ -30,11 +30,11 @@ Defines Prometheus metrics and recording helpers for LiveKit node, packet, room,
   - Record reference count deltas by referrer label.
 - file: `node.go`
   detail: `node.go.jsonl`
-  summary: Owns top-level Prometheus initialization, node-level metrics, node stats snapshots, and service request counters.
+  summary: Owns top-level Prometheus initialization, node-level metrics, node stats snapshots, service request counters, and Twirp request latency metrics.
   responsibilities:
   - Initialize all telemetry metric groups once per node.
   - Build LiveKit node stats and rate intervals.
-  - Record signal, service operation, and Twirp request counters.
+  - Record signal, service operation, Twirp request status, and Twirp request latency metrics.
 - file: `node_linux.go`
   detail: `node_linux.go.jsonl`
   summary: Owns Linux traffic-control packet and drop statistics collection.
@@ -51,11 +51,11 @@ Defines Prometheus metrics and recording helpers for LiveKit node, packet, room,
   - Compute CPU load and CPU count for node stats.
 - file: `packets.go`
   detail: `packets.go.jsonl`
-  summary: Owns packet, RTCP, participant-join, connection, forward latency, and forward jitter Prometheus metrics.
+  summary: Owns packet, RTCP, participant-join state, connection, forward latency, and forward jitter Prometheus metrics.
   responsibilities:
   - Initialize packet and forwarding metrics.
   - Record RTP packet, byte, retransmit, RTCP, loss, jitter, and RTT values.
-  - Track participant join states and active connections.
+  - Track participant signal, validation failure, RTC lifecycle, and active connection counts.
   - Store long-term forwarding latency and jitter values.
 - file: `quality.go`
   detail: `quality.go.jsonl`

@@ -18,10 +18,11 @@ Provides RTP packet pacing implementations for the SFU send path. The package de
 ## Files
 - file: `base.go`
   detail: `base.go.jsonl`
-  summary: Owns shared packet send behavior for pacer implementations, including RTP extension patching, BWE packet tracking, probe observation, and packet buffer cleanup.
+  summary: Owns shared packet send behavior for pacer implementations, including RTP extension patching, write error handling, BWE packet tracking, probe observation, and packet buffer cleanup.
   responsibilities:
   - Send RTP packets through the configured TrackLocalWriter.
   - Patch abs-send-time and transport-wide congestion control RTP header extensions.
+  - Handle RTP write errors without treating closed pipes as loggable failures.
   - Return packet and header buffers to pools after sending.
 - file: `leaky_bucket.go`
   detail: `leaky_bucket.go.jsonl`

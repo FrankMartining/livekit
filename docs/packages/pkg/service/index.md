@@ -6,14 +6,14 @@
 - package_name: `service`
 
 ## Summary
-The service package owns LiveKit server service-layer wiring and runtime APIs, including HTTP/Twirp endpoints, PSRPC services, room lifecycle management, RTC signalling, auth, persistence adapters, ingress, egress, SIP, agent, TURN, and WHIP operations. It coordinates configuration, routing, RTC runtime objects, telemetry, stores, and protocol RPC clients into the server process.
+The service package owns LiveKit server service-layer wiring and runtime APIs, including HTTP/Twirp endpoints, PSRPC services, room lifecycle management, RTC signalling, auth, persistence adapters, ingress, egress, SIP, agent, TURN, WHIP operations, and service telemetry hooks. It coordinates configuration, routing, RTC runtime objects, telemetry, stores, and protocol RPC clients into the server process.
 
 ## Responsibilities
 - Construct and run the top-level LiveKit HTTP, Twirp, PSRPC, RTC, WHIP, agent, Prometheus, and TURN service surfaces.
 - Authorize API calls, validate room and participant requests, and map service failures to HTTP, Twirp, or PSRPC errors.
 - Manage rooms, participants, signalling sessions, room allocation, node selection, and local RTC room lifecycle.
 - Persist and query rooms, participants, egress, ingress, SIP, and agent state through local or Redis-backed stores.
-- Implement public service APIs for room, egress, ingress, SIP, agent dispatch, IO, RTC, WHIP, and signal relay workflows.
+- Implement public service APIs for room, egress, ingress, SIP, agent dispatch, IO, RTC, WHIP, and signal relay workflows with API observability hooks.
 
 ## Files
 - file: `agent_dispatch_service.go`
@@ -62,9 +62,10 @@ The service package owns LiveKit server service-layer wiring and runtime APIs, i
 
 - file: `egress.go`
   detail: `egress.go.jsonl`
-  summary: Implements egress service operations for starting, updating, listing, and stopping egress jobs through egress launchers, IO service calls, room service calls, and typed egress RPC clients.
+  summary: Implements egress service operations for starting, updating, listing, stopping, and handling the generic start-egress API surface through egress launchers, IO service calls, room service calls, and typed egress RPC clients.
   responsibilities:
   - Start room, web, participant, track-composite, and track egress jobs.
+  - Expose the generic StartEgress API method as an explicit unimplemented placeholder.
   - Create and persist egress metadata after egress workers accept start requests.
   - Update egress layout and stream output settings.
   - List and stop egress jobs with permission checks and status-aware error handling.
@@ -167,10 +168,11 @@ The service package owns LiveKit server service-layer wiring and runtime APIs, i
 
 - file: `roommanager.go`
   detail: `roommanager.go.jsonl`
-  summary: Implements the local RTC room manager that creates and deletes rooms, starts participant RTC sessions, hosts room and participant RPC services, manages participant state, and builds ICE/TURN configuration.
+  summary: Implements the local RTC room manager that creates and deletes rooms, starts participant RTC sessions, hosts room and participant RPC services, manages participant state, normalizes enabled codecs, propagates fallback settings, and builds ICE/TURN configuration.
   responsibilities:
   - Create, hold, close, and delete local RTC rooms.
-  - Start and resume participant RTC sessions with signalling, telemetry, ICE, and PSRPC participant services.
+  - Start and resume participant RTC sessions with signalling, telemetry, ICE, fallback settings, and PSRPC participant services.
+  - Ensure RTX is available in participant publish and subscribe codec lists.
   - Implement room, participant, data, metadata, and agent dispatch RPC operations against local rooms.
   - Generate ICE server and refresh-token data for local participants.
 
@@ -194,10 +196,11 @@ The service package owns LiveKit server service-layer wiring and runtime APIs, i
 
 - file: `rtcservice.go`
   detail: `rtcservice.go.jsonl`
-  summary: Implements the RTC HTTP service for WebSocket signalling routes, join-request validation, participant connection startup, signal message proxying, and connection draining.
+  summary: Implements the RTC HTTP service for WebSocket signalling routes, join-request validation, participant connection startup, validation failure metrics, signal message proxying, and connection draining.
   responsibilities:
   - Register RTC WebSocket and validation routes.
-  - Validate legacy and v1 RTC join requests into routing participant initialization data.
+  - Validate legacy and v1 RTC join requests into routing participant initialization data, including missing wrapped client info.
+  - Record validation failures before returning HTTP errors.
   - Upgrade validated HTTP requests to WebSocket signalling connections.
   - Proxy signal requests and responses between WebSocket clients and routing message pipes.
   - Track and drain active WebSocket connections.
@@ -222,33 +225,34 @@ The service package owns LiveKit server service-layer wiring and runtime APIs, i
 
 - file: `sip.go`
   detail: `sip.go.jsonl`
-  summary: Implements the SIP management service for SIP trunks, dispatch rules, outbound SIP participant creation, and SIP participant transfer requests.
+  summary: Implements the SIP management service for SIP trunks, dispatch rules, outbound SIP participant creation, SIP participant transfer requests, and context-aware SIP RPC error mapping.
   responsibilities:
   - Authorize SIP admin and SIP call operations.
   - Create, update, list, load, and delete SIP trunk records through SIPStore.
   - Create, update, list, and delete SIP dispatch rules with SIP validation helpers.
   - Build outbound SIP participant and transfer requests and send them to the SIP RPC client.
+  - Map SIP context cancellation and deadline errors to PSRPC-coded errors before returning through Twirp.
 
 - file: `turn.go`
   detail: `turn.go.jsonl`
-  summary: Builds and configures the embedded TURN server and implements TURN username and password authentication for LiveKit participants.
+  summary: Builds and configures the embedded TURN server and implements expiring TURN username and password authentication for LiveKit participants.
   responsibilities:
   - Create TURN listeners and packet connections from server configuration.
   - Configure relay address generators, telemetry wrappers, and peer permission checks.
-  - Generate expiring participant-scoped TURN usernames and passwords.
-  - Authenticate TURN requests against API key secrets and credential expiry rules.
+  - Generate participant-scoped TURN usernames and passwords with required expiries.
+  - Authenticate TURN requests against API key secrets and credential expiry rules, enforcing expiry for allocations.
 
 - file: `twirp.go`
   detail: `twirp.go.jsonl`
-  summary: Defines Twirp server hooks for API request logging, Prometheus request status metrics, and telemetry APICall reporting.
+  summary: Defines Twirp server hooks for API request logging, Prometheus request status and latency metrics, and telemetry APICall reporting.
   responsibilities:
-  - Build Twirp server hooks for logging, status metrics, and telemetry.
+  - Build Twirp server hooks for logging, status metrics, latency metrics, and telemetry.
   - Attach per-request state to contexts with private context key structs.
   - Record service, method, status, error, timeout, request, and response metadata for API observability.
 
 - file: `utils.go`
   detail: `utils.go.jsonl`
-  summary: Provides HTTP, gzip, client metadata, room configuration, connection validation, user-agent parsing, and service route utility functions.
+  summary: Provides HTTP, gzip, nil-safe client metadata augmentation, room configuration, connection validation, user-agent parsing, and service route utility functions.
   responsibilities:
   - Decompress bounded gzip payloads and write HTTP error responses.
   - Parse and augment client information from request parameters, headers, and user-agent data.
@@ -266,11 +270,12 @@ The service package owns LiveKit server service-layer wiring and runtime APIs, i
 
 - file: `wire.go`
   detail: `wire.go.jsonl`
-  summary: Defines Wire injector functions and provider helpers for constructing LiveKit server, router, stores, message bus, service configuration slices, SIP client, TURN server, and runtime support dependencies.
+  summary: Defines Wire injector functions and provider helpers for constructing LiveKit server, router, stores, message bus, telemetry service hook registration, service configuration slices, SIP client, TURN server, and runtime support dependencies.
   responsibilities:
   - Declare the Wire provider graph for the full LiveKit server.
   - Declare the Wire provider graph for router-only construction.
   - Select local or Redis-backed storage and message bus implementations.
+  - Create telemetry service instances and register webhook processed hooks.
   - Expose configuration and dependency provider helpers used by Wire.
 
 - file: `wsprotocol.go`
@@ -343,14 +348,14 @@ The service package owns LiveKit server service-layer wiring and runtime APIs, i
   package_name: `telemetry`
   index_path: `docs/packages/pkg/telemetry/index.md`
   relation:
-  - Provides telemetry services for API, room, participant, egress, ingress, SIP, TURN, and IO lifecycle events.
-  - Used when constructing service runtime dependencies and emitting service-level analytics.
+  - Provides telemetry services for API, room, participant, egress, ingress, SIP, TURN, IO lifecycle, and webhook processed events.
+  - Used when constructing service runtime dependencies, registering webhook hooks, and emitting service-level analytics.
 
 - dependency_package: `github.com/livekit/livekit-server/pkg/telemetry/prometheus`
   package_name: `prometheus`
   index_path: `docs/packages/pkg/telemetry/prometheus/index.md`
   relation:
-  - Provides Prometheus counters and observers for rooms, participants, RTC initialization, ingress, TURN, and API status reporting.
+  - Provides Prometheus counters and observers for rooms, participants, RTC initialization, ingress, TURN, API status, and Twirp latency reporting.
   - Used by room manager, room-manager WHIP service, signal relay, Twirp hooks, RTC service, TURN service, and server metrics paths.
 
 - dependency_package: `github.com/livekit/livekit-server/pkg/utils`

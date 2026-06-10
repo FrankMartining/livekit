@@ -6,12 +6,12 @@
 - package_name: `clientconfiguration`
 
 ## Summary
-Builds LiveKit client configuration overrides from static rules and Tengo-based client information match expressions. The package owns match expression compilation, client-info script objects, SDK/browser version comparison, static configuration items, and merged client configuration selection.
+Builds LiveKit client configuration overrides from static rules and Tengo-based client information match expressions. The package owns match expression compilation, client-info script objects, ordered SDK/browser version comparison, static configuration items, and merged client configuration selection.
 
 ## Responsibilities
 - Compile and evaluate match rules against `livekit.ClientInfo`.
 - Expose client information fields to Tengo scripts.
-- Compare SDK and browser versions with semver fallback behavior.
+- Compare SDK and browser versions with ordered semver or string fallback behavior.
 - Select, return, and merge static client configuration overrides.
 
 ## Files
@@ -24,12 +24,12 @@ Builds LiveKit client configuration overrides from static rules and Tengo-based 
   - Choose whether matched configurations merge or return immediately.
 - file: `match.go`
   detail: `match.go.jsonl`
-  summary: Owns script-backed match rules and Tengo object wrappers for client information and version comparisons.
+  summary: Owns script-backed match rules and Tengo object wrappers for client information and ordered version comparisons.
   responsibilities:
   - Compile Tengo match expressions.
   - Evaluate compiled expressions against client information.
   - Expose client info fields to script index access.
-  - Compare SDK and browser versions with semver or string comparison.
+  - Compare SDK and browser versions with equality and ordered semver or string comparison.
 - file: `staticconfiguration.go`
   detail: `staticconfiguration.go.jsonl`
   summary: Owns static configuration items and the manager that resolves matching client configurations.

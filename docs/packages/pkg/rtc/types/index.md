@@ -6,11 +6,11 @@
 - package_name: `types`
 
 ## Summary
-The rtc/types package defines shared RTC contracts and value types used by participants, rooms, media tracks, data tracks, telemetry listeners, ICE tracking, protocol capability gates, and traffic accounting. It is an interface-heavy package that centralizes cross-package type boundaries without owning concrete RTC behavior.
+The rtc/types package defines shared RTC contracts and value types used by participants, rooms, media tracks, data tracks, telemetry listeners, ICE tracking, protocol capability gates, disconnect classification, and traffic accounting. It is an interface-heavy package that centralizes cross-package type boundaries without owning concrete RTC behavior.
 
 ## Responsibilities
 - Define participant, local participant, room, media track, data track, listener, resolver, and operation monitor contracts.
-- Represent participant migration state, participant close reasons, signaling close reasons, and protocol capability gates.
+- Represent participant migration state, participant close reasons, signaling close reasons, intentional disconnect classification, and protocol capability gates.
 - Track ICE connection candidates, selected candidate pairs, inferred connection type, and mDNS candidate detection.
 - Provide no-op participant and telemetry listener implementations.
 - Convert RTP stats snapshots into traffic counters, aggregate traffic counters, and compute traffic rates.
@@ -27,10 +27,10 @@ The rtc/types package defines shared RTC contracts and value types used by parti
 
 - file: `interfaces.go`
   detail: `interfaces.go.jsonl`
-  summary: Declares RTC contracts and shared types for websocket clients, participants, rooms, tracks, listeners, telemetry, resolver results, migration, close reasons, and operation monitoring.
+  summary: Declares RTC contracts and shared types for websocket clients, participants, rooms, tracks, listeners, telemetry, resolver results, migration, close reasons, intentional disconnect classification, and operation monitoring.
   responsibilities:
   - Define participant, room, media track, data track, listener, and operation monitor interfaces.
-  - Define migration state, close reason, signaling close reason, and operation monitor event enums.
+  - Define migration state, close reason, signaling close reason, intentional disconnect classification, and operation monitor event enums.
   - Provide no-op listener implementations.
   - Define helper parameter structs and resolver result structs.
 

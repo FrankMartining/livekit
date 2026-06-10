@@ -6,25 +6,25 @@
 - package_name: `config`
 
 ## Summary
-Defines LiveKit server configuration schema, defaults, YAML and CLI loading, API key validation, generated CLI flags, and logger initialization helpers.
+Defines LiveKit server configuration schema, defaults, YAML and CLI loading, API key and TURN secret validation, generated CLI flags, and logger initialization helpers.
 
 ## Responsibilities
 - Model server, RTC, room, TURN, API, logging, limits, metrics, tracing, node stats, and integration configuration.
 - Provide default values used as the base configuration for server startup.
 - Merge YAML configuration and CLI overrides into a validated Config.
 - Generate hidden or visible CLI flags from YAML-tagged config fields.
-- Validate API key configuration and initialize the global logger.
+- Validate API key configuration, load TURN static auth secrets from files, and initialize the global logger.
 
 ## Files
 - file: `config.go`
   detail: `config.go.jsonl`
-  summary: Defines LiveKit server configuration structs, defaults, YAML and CLI loading, API key validation, generated CLI flags, and logger initialization helpers.
+  summary: Defines LiveKit server configuration structs, defaults, YAML and CLI loading, API key and TURN secret validation, generated CLI flags, and logger initialization helpers.
   responsibilities:
   - Model server, RTC, room, TURN, API, logging, limits, metrics, tracing, and node stats configuration.
   - Provide default configuration values for server startup.
   - Merge YAML config and CLI overrides into a validated Config.
   - Generate CLI flags from YAML-tagged config fields.
-  - Validate API key configuration and initialize logging from config.
+  - Validate API key configuration, load TURN static auth secrets from files, and initialize logging from config.
 
 ## Dependency Package
 - dependency_package: `github.com/livekit/livekit-server/pkg/agent`
