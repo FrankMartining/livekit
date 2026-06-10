@@ -1,0 +1,2 @@
+{"record_type":"file","source_file":"pkg/utils/slice.go","package_name":"utils","import_path":"github.com/livekit/livekit-server/pkg/utils","summary":"Owns generic ordered slice deduplication.","responsibilities":["Sort ordered slices.","Compact adjacent duplicate values."]}
+{"record_type":"func","qualified_name":"github.com/livekit/livekit-server/pkg/utils.DedupeSlice","decl":"func DedupeSlice[T cmp.Ordered](s []T) []T","span":{"start_line":8,"end_line":11},"summary":"Sorts an ordered slice and compacts duplicate values."}
