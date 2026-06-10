@@ -427,7 +427,7 @@ func newPeerConnection(
 		}
 		if len(nat1to1Ips) > 0 {
 			params.Logger.Infow("client doesn't support prflx over relay, use external ip only as host candidate", "ips", nat1to1Ips)
-			if err := rtcconfig.SetNAT1To1AddressRewriteRules(&se, nat1to1Ips, webrtc.ICECandidateTypeHost); err != nil {
+			if err := rtcconfig.SetNAT1To1AddressRewriteRules(&se, nat1to1Ips, false); err != nil {
 				params.Logger.Warnw("failed to set ICE address rewrite rules", err, "ips", nat1to1Ips)
 			}
 			se.SetIPFilter(func(ip net.IP) bool {
@@ -440,10 +440,7 @@ func newPeerConnection(
 		}
 	}
 
-	lf := pionlogger.NewLoggerFactory(params.Logger)
-	if lf != nil {
-		se.LoggerFactory = lf
-	}
+	se.LoggerFactory = pionlogger.NewLoggerFactory(params.Logger)
 
 	ir := &interceptor.Registry{}
 	if params.IsSendSide {
@@ -1432,11 +1429,6 @@ func (t *PCTransport) GetICEConnectionType() types.ICEConnectionType {
 }
 
 func (t *PCTransport) WriteRTCP(pkts []rtcp.Packet) error {
-	// TODO-CLEANUP-PACKET-SIZE: remove after checking for large packets
-	raw, _ := rtcp.Marshal(pkts)
-	if len(raw) > 1400 {
-		t.params.Logger.Infow("large RTCP packet send", "size", len(raw), "numPkts", len(pkts), "pkts", pkts)
-	}
 	return t.pc.WriteRTCP(pkts)
 }
 
